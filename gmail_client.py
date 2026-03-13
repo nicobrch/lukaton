@@ -1,5 +1,6 @@
 import base64
 import os
+from datetime import date, timedelta
 
 from google.auth.credentials import Credentials as AuthCredentials
 from google.auth.transport.requests import Request
@@ -56,7 +57,8 @@ class GmailClient:
         self._service = build("gmail", "v1", credentials=creds)
 
     def find_email(self, scraper: BankScraper) -> str | None:
-        query = f'from:{scraper.search_from} subject:"{scraper.get_search_subject()}"'
+        after = (date.today() - timedelta(days=scraper.days_lookback)).strftime("%Y/%m/%d")
+        query = f'from:{scraper.search_from} subject:"{scraper.get_search_subject()}" after:{after}'
         result = (
             self._service.users()
             .messages()

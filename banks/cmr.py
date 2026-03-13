@@ -4,9 +4,11 @@ from .base import BankScraper
 
 
 def _subject() -> str:
-    # CMR sends a new email per billing cycle with the due date in the subject.
-    # TODO: compute this dynamically from the current billing cycle date.
-    return "Información CMR Mastercard Contactless Vencimiento 28 Febrero 2026"
+    # The stable subject prefix shared by all CMR billing cycle emails.
+    # The full subject also contains the due date (e.g. "28 Febrero 2026"), which
+    # varies each month — the `days_lookback` date filter on `BankScraper` ensures
+    # only the current cycle's email is matched without needing to compute that date.
+    return "Información CMR Mastercard Contactless Vencimiento"
 
 
 def _password() -> str:

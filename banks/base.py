@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 
@@ -10,3 +10,6 @@ class BankScraper:
     search_from: str
     get_search_subject: Callable[[], str]
     get_pdf_password: Callable[[], str]
+    # How far back to search for the latest statement email.
+    # 40 days covers any monthly billing cycle without matching older statements.
+    days_lookback: int = field(default=40)
