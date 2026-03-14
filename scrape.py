@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 from banks import BANKS
 from banks.base import BankScraper
-from gmail_client import GmailClient, authenticate
-from pdf_utils import unlock_pdf
+from lukaton.client.gmail import GmailClient, authenticate
+from lukaton.utils.pdf import unlock_pdf
 
 load_dotenv()
 
@@ -33,7 +33,7 @@ def scrape_bank(client: GmailClient, bank: BankScraper) -> None:
     print(f"[{bank.name}] Saved unlocked PDF to: {output_path.resolve()}")
 
 
-def main() -> None:
+def scrape() -> None:
     creds = authenticate()
     client = GmailClient(creds)
     for bank in BANKS:
@@ -41,4 +41,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    scrape()
