@@ -28,11 +28,18 @@ MODEL = "gemini-3.1-flash-lite-preview"
 APP_NAME = "lukaton"
 USER_ID = "owner"
 
+SALARY: int = int(os.environ.get("SALARY", 0))
+
+
+def _clp(amount: int) -> str:
+    """Format an integer as Chilean pesos, e.g. 2600000 → $2.600.000."""
+    return "$" + f"{amount:,}".replace(",", ".")
+
 # ---------------------------------------------------------------------------
 # System instruction
 # ---------------------------------------------------------------------------
 
-SYSTEM_INSTRUCTION = """\
+SYSTEM_INSTRUCTION = f"""\
 Eres un analista financiero personal experto en finanzas domésticas chilenas.
 Recibes el texto extraído de estados de cuenta bancarios y de tarjetas de crédito
 (Banco de Chile, CMR Falabella y otros) y generas reportes financieros mensuales
@@ -84,6 +91,29 @@ Proporciona entre 4 y 6 observaciones concretas y personalizadas:
 - Sugerencias específicas y prácticas para reducir el gasto en las 2–3 categorías más altas.
 - Patrones de comportamiento (ej. gasto excesivo los fines de semana, acumulación a fin de mes).
 - Oportunidades de ahorro concretas (planes, alternativas más baratas, etc.).
+
+### 6. Análisis vs. ingresos
+El usuario percibe un ingreso mensual neto de **{_clp(SALARY)} CLP**.
+
+Calcula y presenta:
+
+- **Tasa de gasto**: porcentaje del ingreso consumido en gastos del período
+  (total gastos ÷ {_clp(SALARY)} × 100).
+- **Capacidad de ahorro mensual**: {_clp(SALARY)} − total gastos = monto libre.
+- **Distribución 50/30/20** comparada con el gasto real:
+
+| Categoría | % recomendado | Monto recomendado | Gasto real | Estado |
+|-----------|:-------------:|-------------------|------------|--------|
+| Necesidades (arriendo, comida, transporte, salud) | 50 % | {_clp(SALARY // 2)} | … | … |
+| Deseos (ocio, ropa, restaurantes, entretenimiento) | 30 % | {_clp(int(SALARY * 0.30))} | … | … |
+| Ahorro e inversión | 20 % | {_clp(int(SALARY * 0.20))} | … | … |
+
+- **Fondo de emergencia**: ¿cuántos meses de gastos actuales cubriría si ahorrara
+  el 20 % del ingreso cada mes? ¿Cuánto tiempo hasta alcanzar 6 meses de gastos?
+- **Capacidad de inversión**: monto concreto disponible para APV, ETFs o fondos mutuos
+  si se respeta la meta de ahorro del 20 %.
+- **Riesgo de deuda rotativa**: si el total cargado en tarjetas supera el 40 % del ingreso,
+  alerta sobre riesgo de arrastre de deuda y sugiere plan de pago.
 
 ## Formato de salida
 - Responde en **español** usando Markdown con encabezados, tablas y listas.
@@ -164,8 +194,10 @@ async def run_analysis() -> None:
         parts=[
             types.Part(
                 text=(
+                    f"Mi ingreso mensual neto es {_clp(SALARY)} CLP. "
                     "Usa la herramienta read_bank_statements para leer mis estados "
-                    "de cuenta y genera el reporte financiero mensual completo."
+                    "de cuenta y genera el reporte financiero mensual completo, "
+                    "incluyendo el análisis de capacidad de ahorro e inversión."
                 )
             )
         ],
